@@ -8,13 +8,11 @@ import time
 
 IP = sys.argv[1]
 PORT = 33434
-ttl = 1
+ttl = int(sys.argv[2])
 MAX_HOPS = 64
 
-print('\t'.join(['ttl', 'address\t', 'Type', 'Code', '1', '2', '3']))
-
-while ttl <= MAX_HOPS:
-    print_buffer = [None] * 7
+if ttl <= MAX_HOPS:
+    print_buffer = [''] * 7
     print_buffer[0] = str(ttl)
 
     for cycle in range(3):
@@ -31,25 +29,20 @@ while ttl <= MAX_HOPS:
             raw_packet, addr = recv_sock.recvfrom(1024)
             stop_time = time.time()
             print_buffer[4+cycle] = '%.2f' % (1000*(stop_time - start_time))
-            print_buffer[1] = addr[0]
+            print_buffer[1] = addr[0] + '\t'
+
+            ip_header_length = (raw_packet[0] & 0x0F)*4
+            icmp_packet_header = raw_packet[ip_header_length:ip_header_length+4]
+            Type, Code  = struct.Struct('!bb2x').unpack(icmp_packet_header)
+
+            print_buffer[2] = str(Type)
+            print_buffer[3] = str(Code)
         else:
             print_buffer[4+cycle] = '*'
             print_buffer[1] = '?'+' '*14
 
-        ip_header_length = (raw_packet[0] & 0x0F)*4
-        icmp_packet_header = raw_packet[ip_header_length:ip_header_length+4]
-        Type, Code  = struct.Struct('!bb2x').unpack(icmp_packet_header)
-
-        print_buffer[2] = str(Type)
-        print_buffer[3] = str(Code)
-
         send_sock.close()
         recv_sock.close()
 
-    ttl += 1
-
     print('\t'.join(print_buffer))
-
-    if Type == 3 and Code == 3:
-        break
 
