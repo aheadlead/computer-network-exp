@@ -2,14 +2,20 @@
 # coding=utf-8
 
 import os
+import platform
 import re
 import subprocess
 from tkinter import *
 from tkinter.messagebox import *
 
-if os.geteuid() != 0:
-    print('root permission needed')
-    exit(1)
+from traceroute import traceroute
+
+if platform.system() != 'Windows':
+    if os.geteuid() != 0:
+        print('root permission needed')
+        exit(1)
+else:
+    print('STOP: This program is incompatible with Microsoft Windows.')
 
 ttl = 1
 
@@ -33,9 +39,7 @@ def go():
     if re.match(ip_pattern, dest_ip_entry.get()) is None:
         showerror(title='error', message='invaild ip address')
     else:
-        r = subprocess.check_output(
-                ['python3', 'traceroute.py', dest_ip_entry.get(), str(ttl)]
-            ).decode('utf-8')
+        r = traceroute(dest_ip_entry.get(), ttl)
         if ttl == 1:
             result_text.delete(1.0, END)
             result_text.insert(END, 'ttl\taddress\t\ttype\tcode\t1\t2\t3\n')
