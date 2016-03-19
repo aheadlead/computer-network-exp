@@ -16,6 +16,7 @@ if platform.system() != 'Windows':
         exit(1)
 else:
     print('STOP: This program is incompatible with Microsoft Windows.')
+    exit(1)
 
 ttl = 1
 
